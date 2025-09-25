@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cámara Inteligente</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at top, #1e1e2f, #0d0d17);
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      animation: slideDown 1s ease-in-out;
+    }
+
+    h1 {
+      font-size: 2rem;
+      letter-spacing: 1px;
+      margin: 0;
+      color: #00e5ff;
+    }
+
+    p {
+      font-size: 1.1rem;
+      opacity: 0.8;
+    }
+
+    main {
+      display: grid;
+      gap: 15px;
+      justify-items: center;
+      animation: fadeIn 1.3s ease;
+    }
+
+    video, canvas {
+      width: 85%;
+      max-width: 500px;
+      border: 2px solid #00e5ff;
+      border-radius: 14px;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    video:hover, canvas:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
+    }
+
+    button {
+      background: #00e5ff;
+      color: #0d0d17;
+      border: none;
+      padding: 12px 26px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      background: #00b8d4;
+      transform: translateY(-3px);
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    @keyframes slideDown {
+      from {opacity: 0; transform: translateY(-30px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📸 Cámara Inteligente</h1>
+    <p>Di la palabra <strong>"captura"</strong> para tomar una foto automáticamente.</p>
+  </header>
+
+  <main>
+    <video id="videoCam" autoplay playsinline></video>
+    <canvas id="canvasFoto"></canvas>
+    <button id="btnGuardar">Guardar imagen</button>
+  </main>
+
+  <script>
+    const videoCam = document.getElementById("videoCam");
+    const canvasFoto = document.getElementById("canvasFoto");
+    const ctx = canvasFoto.getContext("2d");
+    const btnGuardar = document.getElementById("btnGuardar");
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(media => videoCam.srcObject = media)
+      .catch(err => alert("No se pudo acceder a la cámara: " + err));
+
+    const Voz = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const escucha = new Voz();
+    escucha.lang = "es-ES";
+    escucha.continuous = true;
+
+    escucha.onresult = e => {
+      let frase = e.results[e.results.length - 1][0].transcript.toLowerCase().trim();
+      if (frase.includes("captura")) {
+        tomarCaptura();
+      }
+    };
+    escucha.start();
+
+    function tomarCaptura() {
+      canvasFoto.width = videoCam.videoWidth;
+      canvasFoto.height = videoCam.videoHeight;
+      ctx.drawImage(videoCam, 0, 0, canvasFoto.width, canvasFoto.height);
+    }
+
+    btnGuardar.addEventListener("click", () => {
+      const enlace = document.createElement("a");
+      enlace.download = "captura.png";
+      enlace.href = canvasFoto.toDataURL("image/png");
+      enlace.click();
+    });
+  </script>
+</body>
+</html>
